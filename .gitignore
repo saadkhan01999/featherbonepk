@@ -1,0 +1,184 @@
+# ==========================================
+# FEATHER & BONE - PRIVATE / GENERATED FILES
+# ==========================================
+
+
+# ==========================================
+# DEPENDENCIES
+# ==========================================
+node_modules/
+**/node_modules/
+
+
+# ==========================================
+# ENVIRONMENT VARIABLES & SECRETS
+# ==========================================
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Allow safe example environment files
+!.env.example
+!**/.env.example
+
+# ...and the frontend's PRODUCTION build config, which holds no secrets.
+#
+# Every VITE_ variable is inlined by Vite into the JavaScript that ships to
+# every visitor's browser, so nothing in this file can be private — it is
+# public the moment the site is deployed, by construction. What it does hold is
+# the API address the production bundle is compiled against, and leaving that
+# untracked means the build is not reproducible: whoever builds next gets a
+# bundle pointing wherever their own machine happens to be configured, which is
+# exactly how a production site ends up calling http://localhost:7000.
+#
+# Deliberately narrow. Only this one path is exempt; backend/.env and every
+# other .env stay ignored, because those DO hold secrets.
+!frontend/.env.production
+
+
+# ==========================================
+# PRIVATE DOCUMENTATION
+# ==========================================
+README.md
+GUIDE.md
+DEPLOYMENT_GUIDE.md
+
+# Ignore documentation in any subfolder
+**/README.md
+**/GUIDE.md
+**/DEPLOYMENT_GUIDE.md
+
+
+# ==========================================
+# BUILD FILES
+# ==========================================
+dist/
+build/
+.next/
+out/
+
+**/dist/
+**/build/
+**/.next/
+**/out/
+
+
+# ==========================================
+# LOG FILES
+# ==========================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+
+# ==========================================
+# LOCAL UPLOADS
+# ==========================================
+uploads/
+backend/uploads/
+**/uploads/
+
+tmp/
+temp/
+**/tmp/
+**/temp/
+
+
+# ==========================================
+# TEST COVERAGE
+# ==========================================
+coverage/
+**/coverage/
+.nyc_output/
+
+
+# ==========================================
+# CACHE
+# ==========================================
+.cache/
+**/.cache/
+
+.vite/
+**/.vite/
+
+.eslintcache
+
+
+# ==========================================
+# OS FILES
+# ==========================================
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+
+# ==========================================
+# IDE SETTINGS
+# ==========================================
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+
+.idea/
+*.iml
+
+
+# ==========================================
+# DATABASE FILES
+# ==========================================
+*.sqlite
+*.sqlite3
+*.db
+
+# ANCHORED WITH A LEADING SLASH — these mean a local mongod data directory at
+# the PROJECT ROOT, nothing else. Unanchored, `database/` matches a directory of
+# that name at ANY depth, and this repository has one: backend/src/database/,
+# which is application source. connect.js survives only because it was committed
+# before the rule existed; git ignores nothing already tracked. Any NEW file put
+# beside it would have been silently untracked — absent from commits, absent
+# from every deployment archive — and would fail in production while working
+# perfectly on the machine that wrote it. The two characters are the whole fix.
+/data/
+/database/
+
+
+# ==========================================
+# BACKUPS
+# ==========================================
+*.bak
+*.backup
+backups/
+backup/
+
+
+# ==========================================
+# CERTIFICATES / PRIVATE KEYS
+# ==========================================
+*.pem
+*.key
+*.crt
+*.pfx
+*.p12
+
+
+# ==========================================
+# CLOUD / DEPLOYMENT SECRETS
+# ==========================================
+.firebase/
+.vercel/
+.render/
+.aws/
+
+
+# ==========================================
+# MISC
+# ==========================================
+*.swp
+*.swo
+*~

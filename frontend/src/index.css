@@ -1,0 +1,577 @@
+/**
+ * Feather & Bone — global stylesheet and design tokens.
+ * ---------------------------------------------------------------------------
+ * THIS FILE IS THE SINGLE SOURCE OF TRUTH FOR COLOUR.
+ *
+ * Every colour is a semantic CSS variable declared once for the dark theme
+ * (`:root`, the brand default) and once for light (`.light`). Components never
+ * hard-code hex values — they use Tailwind tokens such as `bg-surface` or
+ * `text-gold`, which tailwind.config.js maps onto these variables. Re-skinning
+ * the whole suite therefore means editing this file only.
+ *
+ * Values are stored as bare HSL channels (no `hsl()` wrapper) so Tailwind can
+ * apply opacity modifiers like `bg-gold/20`.
+ *
+ * PALETTE NOTES
+ * - The dark surfaces carry a deliberate warm hue (~24–30°) at very low
+ *   saturation. A neutral grey reads clinical; the warm tint is what makes the
+ *   UI feel like a restaurant rather than a spreadsheet.
+ * - Gold is reserved for BRAND and INTERACTION (primary actions, active nav,
+ *   focus rings, prices). It is deliberately NOT used for data-series colour —
+ *   charts have their own palette so a chart mark is never mistaken for a
+ *   clickable affordance.
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* ----------------------------------------------------------------------
+   * DARK THEME — the brand default (see the bootstrap script in index.html).
+   * ------------------------------------------------------------------- */
+  :root {
+    /* Canvas and raised surfaces. Three steps of elevation is enough:
+       page → card → popover. More steps and the hierarchy stops reading. */
+    --background: 24 10% 4%; /* #0b0a09 near-black, warm */
+    --foreground: 40 20% 97%; /* #faf9f7 warm white */
+
+    --surface: 24 8% 7%; /* #131211 cards, panels */
+    --surface-hover: 26 8% 11%; /* #1e1c1a hover / active rows */
+    --surface-raised: 26 8% 13%; /* #232120 popovers, dropdowns, modals */
+
+    --card: 24 8% 7%;
+    --card-foreground: 40 20% 97%;
+
+    --popover: 26 8% 13%;
+    --popover-foreground: 40 20% 97%;
+
+    /* BRAND GOLD. Dark text on gold fills — gold is a light colour, so white
+       text on it fails contrast badly (this is the single most common way a
+       gold brand ends up unreadable). */
+    --gold: 41 95% 53%; /* #f9b416 */
+    --gold-soft: 41 90% 62%; /* #fbc44a hover / hairlines */
+    --gold-deep: 36 92% 44%; /* #d78c09 pressed state, gradient end */
+    --gold-foreground: 26 60% 8%; /* #211203 text ON gold */
+
+    --primary: 41 95% 53%;
+    --primary-foreground: 26 60% 8%;
+
+    --secondary: 26 8% 13%;
+    --secondary-foreground: 40 20% 97%;
+
+    --muted: 26 8% 11%;
+    --muted-foreground: 35 8% 63%; /* #a8a29b secondary copy */
+
+    --accent: 41 95% 53%;
+    --accent-foreground: 26 60% 8%;
+
+    /* Status colours. Kept distinct in HUE, not just lightness, so they stay
+       distinguishable for colour-vision-deficient users and in greyscale. */
+    --success: 152 62% 44%; /* stock healthy, paid, active */
+    --success-foreground: 150 60% 6%;
+    --warning: 27 94% 55%; /* low stock, pending — orange, NOT gold, or it
+                              would read as a brand affordance */
+    --warning-foreground: 26 60% 8%;
+    --destructive: 0 78% 56%; /* out of stock, failed, delete */
+    --destructive-foreground: 0 0% 100%;
+    --info: 214 90% 60%;
+    --info-foreground: 214 90% 8%;
+
+    --border: 30 6% 16%; /* #2a2724 hairlines */
+    --border-strong: 32 7% 24%; /* #423d38 input borders, dividers */
+    --input: 30 6% 16%;
+    --ring: 41 95% 53%; /* focus ring is always brand gold */
+
+    --radius: 0.75rem;
+  }
+
+  /* ----------------------------------------------------------------------
+   * LIGHT THEME — supported for daytime back-office use. The storefront is
+   * designed dark-first, so light is a considered alternative, not the
+   * primary canvas.
+   * ------------------------------------------------------------------- */
+  .light {
+    --background: 40 30% 98%;
+    --foreground: 26 25% 12%;
+
+    --surface: 0 0% 100%;
+    --surface-hover: 40 20% 96%;
+    --surface-raised: 0 0% 100%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 26 25% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 26 25% 12%;
+
+    /* Gold darkens in light mode: the dark-mode gold on white does not reach
+       4.5:1 for text, so the token steps down rather than being reused. */
+    --gold: 38 92% 44%;
+    --gold-soft: 41 95% 53%;
+    --gold-deep: 33 90% 38%;
+    --gold-foreground: 26 60% 8%;
+
+    --primary: 38 92% 44%;
+    --primary-foreground: 26 60% 8%;
+
+    --secondary: 40 20% 94%;
+    --secondary-foreground: 26 25% 12%;
+
+    --muted: 40 20% 94%;
+    --muted-foreground: 30 8% 40%;
+
+    --accent: 38 92% 44%;
+    --accent-foreground: 26 60% 8%;
+
+    --success: 152 62% 34%;
+    --success-foreground: 0 0% 100%;
+    --warning: 27 90% 42%;
+    --warning-foreground: 0 0% 100%;
+    --destructive: 0 72% 46%;
+    --destructive-foreground: 0 0% 100%;
+    --info: 214 85% 44%;
+    --info-foreground: 0 0% 100%;
+
+    --border: 36 18% 88%;
+    --border-strong: 34 14% 78%;
+    --input: 36 18% 88%;
+    --ring: 38 92% 44%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  /*
+   * POS DENSITY.
+   * -------------------------------------------------------------------------
+   * A till is a fixed screen showing a product grid, a running basket and a
+   * total at once, and at the storefront's comfortable reading size the cashier
+   * scrolls to reach the basket — during a queue. This tightens the type on the
+   * POS surface only.
+   *
+   * WHY IT REDEFINES THE UTILITIES INSTEAD OF SCALING THE ROOT:
+   *
+   * The obvious trick is `html { font-size: 15px }` while the till is open,
+   * which shrinks every `rem`-based Tailwind size at once. It was written that
+   * way first — and a browser check proved it does nothing: setting the root to
+   * 30px, 20px, 15px or 12px all computed back to 16px, while the same values
+   * on an ordinary element applied fine. Embedded webviews and browsers with a
+   * minimum-font-size accessibility setting pin the root the same way, and a
+   * POS commonly runs in exactly such a kiosk shell. The feature would have
+   * silently done nothing on the machines that need it most.
+   *
+   * Redefining what the utilities MEAN inside `.pos-dense` does not depend on
+   * the root being mutable — it only depends on it being stable at 16px, which
+   * it demonstrably is.
+   *
+   * Sizes step down roughly one notch. Buttons and hit areas are untouched:
+   * this is a touchscreen, and shrinking a 44px target to save a few pixels of
+   * text is a bad trade.
+   */
+  .pos-dense .text-xs {
+    font-size: 0.6875rem; /* 11px */
+    line-height: 1rem;
+  }
+  .pos-dense .text-sm {
+    font-size: 0.8125rem; /* 13px */
+    line-height: 1.125rem;
+  }
+  .pos-dense .text-base {
+    font-size: 0.875rem; /* 14px */
+    line-height: 1.25rem;
+  }
+  .pos-dense .text-lg {
+    font-size: 1rem; /* 16px */
+    line-height: 1.375rem;
+  }
+  .pos-dense .text-xl {
+    font-size: 1.125rem; /* 18px */
+    line-height: 1.5rem;
+  }
+  .pos-dense .text-2xl {
+    font-size: 1.25rem; /* 20px */
+    line-height: 1.625rem;
+  }
+  .pos-dense .text-3xl {
+    font-size: 1.5rem; /* 24px */
+    line-height: 1.875rem;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    /* A single stray wide element must never make the whole page pan
+       sideways on a phone. */
+    overflow-x: hidden;
+  }
+
+  /* Respect the OS "reduce motion" setting everywhere, including the smooth
+     scrolling above and every CSS animation. Framer Motion is handled
+     separately in lib/motion.js. */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* Keyboard focus only — a visible gold ring for keyboard users without
+     ringing every mouse click. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  /* Dark-appropriate scrollbars. The default light scrollbar on a near-black
+     page is a bright stripe that breaks the whole aesthetic. */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--background));
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border-strong));
+    border-radius: 9999px;
+    border: 2px solid hsl(var(--background));
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
+  }
+
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border-strong)) hsl(var(--background));
+  }
+}
+
+@layer components {
+  /* --------------------------------------------------------------------
+   * Reusable surface treatments. These exist as component classes because
+   * they are used on dozens of elements; repeating the same six utilities
+   * everywhere invites drift.
+   * ----------------------------------------------------------------- */
+
+  /* The standard panel: used by cards, table wrappers, dashboard widgets. */
+  .fb-panel {
+    @apply rounded-2xl border border-border bg-surface shadow-panel;
+  }
+
+  /* Gold gradient fill for primary CTAs and brand flourishes. */
+  .fb-gold-gradient {
+    background-image: linear-gradient(135deg, hsl(var(--gold-soft)), hsl(var(--gold-deep)));
+  }
+
+  /* Hairline gold rule used under section headings in the storefront. */
+  .fb-gold-rule {
+    background-image: linear-gradient(90deg, transparent, hsl(var(--gold) / 0.9), transparent);
+  }
+
+  /* Magazine-style large first letter for the About story. */
+  .fb-dropcap > p:first-of-type::first-letter {
+    float: left;
+    margin: 0.06em 0.14em 0 0;
+    font-size: 3.4em;
+    font-weight: 800;
+    line-height: 0.82;
+    color: hsl(var(--gold));
+  }
+
+  /* Dark overlay for hero/video imagery. Text over photography needs a
+     scrim, otherwise legibility depends on whichever image is loaded. */
+  .fb-image-scrim {
+    background-image: linear-gradient(
+      to top,
+      hsl(var(--background)) 4%,
+      hsl(var(--background) / 0.85) 30%,
+      hsl(var(--background) / 0.35) 70%,
+      hsl(var(--background) / 0.15) 100%
+    );
+  }
+
+  /* Loading shimmer for skeletons. */
+  .fb-shimmer {
+    @apply relative overflow-hidden bg-surface-hover;
+  }
+  .fb-shimmer::after {
+    @apply absolute inset-0 -translate-x-full;
+    content: '';
+    background-image: linear-gradient(90deg, transparent, hsl(var(--foreground) / 0.06), transparent);
+    animation: fb-shimmer 1.6s infinite;
+  }
+
+  /* Hides content visually but keeps it for screen readers (skip links,
+     form labels that are visually implied by an icon). */
+  .sr-only-focusable:not(:focus):not(:focus-within) {
+    @apply sr-only;
+  }
+}
+
+@layer utilities {
+  /* Tabular figures: prices and totals must not jiggle as digits change.
+     Applied to every money value in the app. */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Clamp helpers for card titles and review bodies. */
+  .line-clamp-1,
+  .line-clamp-2,
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .line-clamp-1 {
+    -webkit-line-clamp: 1;
+  }
+  .line-clamp-2 {
+    -webkit-line-clamp: 2;
+  }
+  .line-clamp-3 {
+    -webkit-line-clamp: 3;
+  }
+}
+
+@keyframes fb-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/**
+ * PRINT — thermal receipts, kitchen tickets and A4 reports.
+ * ---------------------------------------------------------------------------
+ * Whatever is printed is rendered into #fb-print-root (components/common/
+ * PrintPortal.jsx) and everything else is removed, so the app chrome never
+ * reaches the paper and nothing clips it.
+ *
+ * THREE PAPER SIZES, CHOSEN BY WHAT IS PRINTED — CSS named pages:
+ *   receipt80 / receipt58  a till slip or kitchen ticket on a thermal roll
+ *   (default)              a report on A4
+ * The old stylesheet set one global `@page { size: 80mm }`, so a report
+ * printed from the back office came out as a long 80mm strip.
+ *
+ * WHY THE SLIP PRINTED FAINT, AND THE FIX. A thermal head has no grey: it burns
+ * a dot or it doesn't. The slip used 8–9px regular-weight type and `opacity-70`
+ * / `opacity-80` for secondary lines; the driver dithers those to a sparse
+ * pattern that reads as washed-out. So when printing:
+ *   • every colour is forced to pure #000 and every opacity to 1;
+ *   • `.slip-bold` (Settings → POS → "Print receipt text in bold", on by
+ *     default) makes every glyph bold — the single biggest legibility win;
+ *   • `.slip-size-large` / `.slip-size-xlarge` scale the whole slip up;
+ *   • font smoothing is switched off so glyph edges are solid, not anti-aliased.
+ */
+/* The print root is invisible on screen and revealed only when printing. */
+#fb-print-root {
+  display: none;
+}
+
+@media print {
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    margin: 0 !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  /*
+   * ISOLATION. `display: none`, not `visibility: hidden`: hidden elements still
+   * reserve their space, which prints blank leading pages.
+   */
+  body > *:not(#fb-print-root) {
+    display: none !important;
+  }
+
+  #fb-print-root {
+    display: block !important;
+  }
+
+  /* ---------------- Thermal slips (receipt + kitchen ticket) ---------------- */
+  .print-slip {
+    page: receipt80;
+    position: static !important;
+    width: 80mm !important;
+    max-width: 80mm !important;
+    margin: 0 auto !important;
+    padding: 3mm !important;
+    background: #fff !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    overflow: visible !important;
+    -webkit-font-smoothing: none;
+    font-smooth: never;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .print-slip[data-paper='58'] {
+    page: receipt58;
+    width: 58mm !important;
+    max-width: 58mm !important;
+    padding: 2mm !important;
+  }
+
+  /* Solid black, always — greys and translucency print as near-nothing. */
+  .print-slip,
+  .print-slip * {
+    color: #000 !important;
+    opacity: 1 !important;
+    border-color: #000 !important;
+    text-shadow: none !important;
+  }
+
+  .print-slip svg rect,
+  .print-slip svg path {
+    fill: #000;
+  }
+
+  .print-slip.slip-bold,
+  .print-slip.slip-bold * {
+    font-weight: 700 !important;
+  }
+
+  /* The headline figures stay heavier than the rest even in bold mode. */
+  .print-slip.slip-bold h1,
+  .print-slip.slip-bold .slip-strong {
+    font-weight: 900 !important;
+  }
+
+  .print-slip.slip-size-large {
+    zoom: 1.12;
+  }
+
+  .print-slip.slip-size-xlarge {
+    zoom: 1.25;
+  }
+
+  /* Never split a line item across two pages. */
+  .print-slip tr,
+  .print-slip li {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* ---------------- A4 reports ---------------- */
+  .report-print {
+    width: 100% !important;
+    padding: 0 !important;
+    font-size: 10pt;
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .report-print * {
+    overflow: visible !important;
+    box-shadow: none !important;
+  }
+
+  .report-print table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  /* The header row repeats on every printed page of a long table. */
+  .report-print thead {
+    display: table-header-group;
+  }
+
+  .report-print tr,
+  .report-print .report-kpi {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .report-print section {
+    break-inside: auto;
+  }
+
+  .report-print h2,
+  .report-print h3 {
+    break-after: avoid;
+  }
+
+  /* Thermal rolls: `auto` height lets the slip run to its natural length. */
+  @page receipt80 {
+    size: 80mm auto;
+    margin: 0;
+  }
+
+  @page receipt58 {
+    size: 58mm auto;
+    margin: 0;
+  }
+
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+}
+
+.print-only {
+  display: none;
+}
+
+/* ---------------- Order Board ---------------- */
+
+/* The footer message scrolls right-to-left, like a shop's LED strip. */
+.board-marquee {
+  display: inline-block;
+  padding-left: 100%;
+  animation: fb-marquee 28s linear infinite;
+}
+
+@keyframes fb-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+/* A number that has just turned ready glows for its first minute on the board. */
+.board-glow {
+  animation: fb-board-glow 1.6s ease-in-out infinite;
+}
+
+@keyframes fb-board-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 hsl(var(--success) / 0.55);
+  }
+  50% {
+    box-shadow: 0 0 0 1.2vh hsl(var(--success) / 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .board-marquee,
+  .board-glow {
+    animation: none;
+  }
+  .board-marquee {
+    padding-left: 0;
+  }
+}

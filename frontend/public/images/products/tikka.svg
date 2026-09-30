@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300" role="img" aria-label="Food placeholder">
+  <defs>
+    <radialGradient id="bg1" cx="50%" cy="38%" r="72%">
+      <stop offset="0%" stop-color="#1a1512"/>
+      <stop offset="100%" stop-color="#0e0b09"/>
+    </radialGradient>
+    <radialGradient id="glow1" cx="50%" cy="42%" r="46%">
+      <stop offset="0%" stop-color="#f9b416" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#f9b416" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="crust1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fbc44a"/>
+      <stop offset="100%" stop-color="#a35f14"/>
+    </linearGradient>
+    <linearGradient id="meat1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#b4471f"/>
+      <stop offset="100%" stop-color="#7d2f13"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#bg1)"/>
+  <rect width="400" height="300" fill="url(#glow1)"/>
+  <ellipse cx="200" cy="212" rx="132" ry="30" fill="#2a2320"/>
+  <ellipse cx="200" cy="208" rx="132" ry="30" fill="none" stroke="#f9b416" stroke-opacity="0.28" stroke-width="1.5"/>
+  
+    <line x1="118" y1="178" x2="284" y2="150" stroke="#8a8f96" stroke-width="4" stroke-linecap="round"/>
+    <ellipse cx="152" cy="171" rx="24" ry="20" fill="url(#meat1)" transform="rotate(-9 152 171)"/>
+    <ellipse cx="200" cy="163" rx="25" ry="21" fill="#b4471f" transform="rotate(-9 200 163)"/>
+    <ellipse cx="248" cy="155" rx="24" ry="20" fill="url(#meat1)" transform="rotate(-9 248 155)"/>
+    <path d="M140 162c8-4 16-4 22 2" stroke="#fbc44a" stroke-width="2.5" fill="none" opacity="0.6" stroke-linecap="round"/>
+    <path d="M236 146c8-4 16-4 22 2" stroke="#fbc44a" stroke-width="2.5" fill="none" opacity="0.6" stroke-linecap="round"/>
+</svg>

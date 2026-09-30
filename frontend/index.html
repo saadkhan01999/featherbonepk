@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      FOUR ICON DECLARATIONS, because browsers do not agree on one.
+
+      An SVG favicon alone was the whole problem. Every browser ALSO requests
+      /favicon.ico on its own — for the tab, bookmarks and history — and that
+      file did not exist. The SPA rewrite then matched the miss and served
+      index.html, so the browser received an HTML document with
+      Content-Type: text/html where an icon was expected, failed to decode it,
+      and showed the blank default. Nothing in the console said why: the request
+      returned 200.
+
+      The .ico is listed FIRST and carries 16/32/48px bitmaps, which is what
+      Safari and Windows shortcuts actually use. The SVG stays for the browsers
+      that prefer it — it scales cleanly and is a tenth the size.
+    -->
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <title>Feather &amp; Bone — Roast · Meat · Sweets · Bakery</title>
+    <meta
+      name="description"
+      content="Feather &amp; Bone — premium roast chicken, fresh meat, bakery and sweets. Order online for fast delivery across Pakistan."
+    />
+    <meta name="theme-color" content="#0b0b0c" />
+
+    <!-- Open Graph / social sharing -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Feather &amp; Bone" />
+    <meta property="og:description" content="Roast · Meat · Sweets · Bakery. Order fresh, every day." />
+
+    <!--
+      Inter, loaded with preconnect so the font handshake overlaps the HTML
+      parse instead of queueing behind it.
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <script>
+      /*
+       * Theme bootstrap — runs BEFORE React mounts and before first paint.
+       * Deferring this to a React effect would let the browser paint the
+       * default theme first, producing a visible flash on every load.
+       * The suite is dark-first (see the brand guide), so dark is the default
+       * when the user has expressed no preference.
+       */
+      /*
+       * Each surface (website, back office, till, kitchen) has its own mode,
+       * set by the owner in Settings → Theme and remembered by src/lib/theme.js.
+       * Only the MODE is applied here; the brand colour follows a moment later
+       * from React, which is invisible in practice (same hue family).
+       */
+      (function () {
+        try {
+          var path = location.pathname;
+          var surface =
+            path.indexOf('/pos') === 0
+              ? 'pos'
+              : path.indexOf('/kitchen') === 0 || path.indexOf('/display') === 0
+                ? 'kitchen'
+                : path.indexOf('/admin') === 0
+                  ? 'admin'
+                  : 'website';
+          var saved = JSON.parse(localStorage.getItem('fb-theme-v2') || '{}')[surface] || {};
+          var theme = saved.mode === 'light' ? 'light' : 'dark';
+          document.documentElement.classList.toggle('dark', theme === 'dark');
+          document.documentElement.classList.toggle('light', theme === 'light');
+          document.documentElement.style.colorScheme = theme;
+        } catch (_) {
+          /* Private-mode browsers throw on localStorage — dark stays applied. */
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

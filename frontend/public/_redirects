@@ -1,0 +1,14 @@
+# SPA fallback for Cloudflare Pages and Netlify.
+#
+# This app routes in the browser, so /menu and /admin/orders exist only once
+# React has loaded. A static host asked for them directly — a refresh, or a
+# customer opening a shared link — looks for a file of that name, finds none,
+# and serves its own 404. The site works until someone reloads, which is the
+# worst possible way for it to break.
+#
+# 200, not 301: the URL must stay as the customer typed it so the router can
+# read it. A redirect would rewrite the address bar to "/" and lose the page
+# they asked for.
+#
+# Vercel does not read this file — it has the same rule in vercel.json.
+/*    /index.html   200

@@ -1,0 +1,78 @@
+# Apache (cPanel) configuration for the built site.
+# ---------------------------------------------------------------------------
+# Vite copies this file into dist/, so it ships with the build. It is the
+# Apache equivalent of _redirects (Cloudflare/Netlify) and the rewrite in
+# vercel.json — each host reads only its own, and they say the same thing.
+
+# --- Single-page routing ---------------------------------------------------
+# This app routes in the browser: /menu and /admin/login exist only once React
+# has loaded. Apache asked for them directly — a refresh, a bookmark, or a
+# customer opening a shared link — looks for a file of that name, finds none,
+# and serves its own 404. Without this the site works until someone reloads,
+# which is the worst possible way for it to break.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Real files and directories are served as they are: the JS bundle, the
+  # images, robots.txt. Only paths that match nothing on disk fall through.
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # /api IS NOT REWRITTEN — this line is what lets the API live on the same
+  # domain as the site.
+  #
+  # cPanel mounts the Node app at /api and writes its own Passenger rules into
+  # public_html/api/.htaccess. This rule hands those paths straight through.
+  # Without it the rewrite below would swallow every API call and answer it with
+  # the HTML of the homepage — which reads to the client as "the server returned
+  # nonsense" rather than "the API is missing", and is a genuinely confusing
+  # hour to lose.
+  #
+  # `(/|$)` so that a bare /api matches as well as /api/v1/... — `^api/` alone
+  # misses the version without a trailing slash.
+  RewriteRule ^api(/|$) - [L]
+
+  # ASSET-SHAPED REQUESTS MUST 404, NOT RETURN THE HOMEPAGE.
+  #
+  # Anything with a file extension is asking for a FILE. If it is not on disk it
+  # is genuinely missing, and the honest answer is 404. Falling through to
+  # index.html instead hands back an HTML document with Content-Type: text/html
+  # and a 200 status, which is worse than a miss in every direction: the browser
+  # tries to decode a web page as an icon, an image or a stylesheet and silently
+  # renders nothing, while devtools shows a successful request. That is exactly
+  # how a missing /favicon.ico — which every browser requests on its own —
+  # produced a blank tab icon with no error anywhere to explain it.
+  #
+  # Routes stay unaffected: /menu and /admin/login have no extension, so they
+  # still reach the app below.
+  RewriteCond %{REQUEST_URI} \.[a-zA-Z0-9]{1,6}$
+  RewriteRule ^ - [L,R=404]
+
+  # Everything else is the app. Serving index.html (not redirecting to it) keeps
+  # the URL the customer actually asked for, so the router can read it.
+  RewriteRule . /index.html [L]
+</IfModule>
+
+# --- Cache -----------------------------------------------------------------
+# Vite fingerprints filenames (index-B5B87KMz.js), so a build's assets can be
+# cached hard and for a long time: a new build produces new names. index.html
+# itself must NEVER be cached, or returning visitors keep loading the old page,
+# which then asks for asset filenames that no longer exist.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(js|css|woff2|png|jpg|jpeg|webp|avif|svg|mp4)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.(html)$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+
+  # Modest hardening for a static site. The API sets its own headers via helmet.
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# --- Compression -----------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json image/svg+xml
+</IfModule>

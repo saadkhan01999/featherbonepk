@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Feather &amp; Bone">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fbc44a" />
+      <stop offset="100%" stop-color="#d78c09" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#0b0a09" />
+  <path
+    d="M32 12c7 5 11 11 11 18a11 11 0 0 1-22 0c0-7 4-13 11-18Z"
+    fill="url(#g)"
+  />
+  <path d="M32 20v26" stroke="#0b0a09" stroke-width="2.5" stroke-linecap="round" />
+  <path d="M32 52c-4 0-7-2-7-5s3-4 7-4 7 1 7 4-3 5-7 5Z" fill="url(#g)" />
+</svg>

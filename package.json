@@ -1,0 +1,43 @@
+{
+  "name": "feather-and-bone",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Feather & Bone — restaurant commerce suite: customer website, POS terminal and back office on one API.",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "concurrently -n api,web -c yellow,cyan \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:api": "npm --workspace backend run dev",
+    "dev:web": "npm --workspace frontend run dev",
+    "dev:memdb": "npm --workspace backend run dev:memdb",
+    "migrate:channels": "npm --workspace backend run migrate:channels",
+    "build": "npm --workspace frontend run build",
+    "preview": "npm --workspace frontend run preview",
+    "start": "npm --workspace backend run start",
+    "lint": "npm --workspace backend run lint && npm --workspace frontend run lint",
+    "test": "npm --workspace backend run test",
+    "format": "prettier --write \"**/*.{js,jsx,json,css,md}\"",
+    "dev:memdb:empty": "npm --workspace backend run dev:memdb:empty",
+    "owner": "npm --workspace backend run owner --",
+    "doctor": "npm --workspace backend run doctor",
+    "expire:reservations": "npm --workspace backend run expire:reservations",
+    "migrate:media": "npm --workspace backend run migrate:media --",
+    "check:db": "npm --workspace backend run check:db"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "concurrently": "^9.1.0",
+    "eslint": "^9.17.0",
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-refresh": "^0.4.16",
+    "globals": "^15.14.0",
+    "prettier": "^3.4.2"
+  }
+}

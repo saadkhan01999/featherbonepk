@@ -1,0 +1,34 @@
+# Feather & Bone — crawler rules
+#
+# The back office, the till and personal account pages are disallowed. This is
+# NOT a security control — a Disallow line is a request, and anyone can ignore
+# it. Those routes are protected by authentication; this only keeps them out of
+# search results, where an indexed /admin login page is an invitation.
+#
+# The real reason it matters: pages behind a login return the app shell to a
+# crawler, so a dozen "Feather & Bone" entries with no content end up competing
+# with the menu pages that should be ranking.
+
+User-agent: *
+
+Disallow: /admin
+Disallow: /pos
+Disallow: /account
+Disallow: /checkout
+Disallow: /cart
+Disallow: /wishlist
+Disallow: /order/
+Disallow: /reset-password
+Disallow: /forgot-password
+Disallow: /verify-email
+
+# Search result pages: infinite variations of the same items, which is exactly
+# what a crawl budget should not be spent on.
+Disallow: /search?
+
+Allow: /
+
+# Absolute URL, and it must be YOUR domain — replace it before going live, or
+# Search Console will reject a sitemap hosted somewhere else.
+# The API generates it from the live catalogue, so it is never stale.
+Sitemap: https://your-domain.pk/sitemap.xml
