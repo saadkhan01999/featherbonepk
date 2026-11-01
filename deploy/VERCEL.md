@@ -2,19 +2,25 @@
 
 The storefront stays on WebHoster; only the API moves to Vercel:
 
-| Piece                                         | Where                                      | Address                                             |
-| --------------------------------------------- | ------------------------------------------ | --------------------------------------------------- |
-| Storefront, back office, POS, kitchen screens | WebHoster cPanel, `public_html`            | `https://featherbonepk.com`                         |
-| API                                           | Vercel (project root directory: `backend`) | `https://backend.featherbonepk.com` (custom domain) |
-| Database                                      | MongoDB Atlas                              | —                                                   |
-| Uploaded photos and videos                    | Cloudinary                                 | `https://res.cloudinary.com/…`                      |
+| Piece                                         | Where                                      | Address                                                                                              |
+| --------------------------------------------- | ------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| Storefront, back office, POS, kitchen screens | WebHoster cPanel, `public_html`            | `https://featherbonepk.com`                                                                          |
+| API                                           | Vercel (project root directory: `backend`) | `https://featherbonepk.vercel.app` (now) → `https://backend.featherbonepk.com` (recommended, step 3) |
+| Database                                      | MongoDB Atlas                              | —                                                                                                    |
+| Uploaded photos and videos                    | Cloudinary                                 | `https://res.cloudinary.com/…`                                                                       |
 
-**Why a custom domain and not `*.vercel.app`:** the login cookie has to be
-first-party. On `backend.featherbonepk.com` it belongs to the same site as the
-storefront. On `something.vercel.app` it would be a third-party cookie, Safari
-(every iPhone) blocks those, and users would be signed out on every page load. The
-storefront is already built against `https://backend.featherbonepk.com/api/v1`, so no
-rebuild is needed when the API moves.
+**The storefront is currently built against `https://featherbonepk.vercel.app/api/v1`**
+(`frontend/.env.production`). That works in Chrome, Edge and Firefox. **Safari, which
+includes every browser on iPhone and iPad, will sign users out whenever the page
+reloads.** The login cookie comes from `vercel.app`, a different site from
+`featherbonepk.com`, so it's a third-party cookie, and Safari blocks those. Customers
+can still browse and order; staff on iPads would have to sign in again after each
+reload.
+
+The cure is the custom domain in step 3. On `backend.featherbonepk.com` the cookie
+belongs to the same site as the storefront. After step 3, change `VITE_API_URL` in
+`frontend/.env.production` to `https://backend.featherbonepk.com/api/v1`, rebuild
+(`npm run package:webhoster`) and upload the new zip. Nothing on Vercel changes.
 
 ---
 
@@ -76,7 +82,10 @@ deployment page). You want `"status":"ok"` and **`"database":"connected"`**.
 | `"database":"disconnected"`      | Atlas Network Access is missing `0.0.0.0/0`, or `MONGODB_URI` is wrong. **Logs** (Vercel → Project → Logs) shows the exact reason.    |
 | `500 FUNCTION_INVOCATION_FAILED` | A variable is missing or invalid. **Logs** shows a line starting with `✖` that names it. Fix it, then **Deployments → ⋯ → Redeploy**. |
 
-## 3. Point `backend.featherbonepk.com` at Vercel
+## 3. Recommended: point `backend.featherbonepk.com` at Vercel
+
+Optional for launch; needed for iPhone/iPad/Safari sign-in to persist (see the top
+of this guide). `featherbonepk.vercel.app` keeps working alongside it.
 
 1. Vercel → Project → **Settings → Domains → Add** → `backend.featherbonepk.com`.
    Vercel shows a **CNAME** record to create (name `backend`, plus a value such as
@@ -91,6 +100,9 @@ deployment page). You want `"status":"ok"` and **`"database":"connected"`**.
 3. Wait until Vercel shows **Valid Configuration** and issues the certificate (minutes,
    occasionally up to an hour). Then
    `https://backend.featherbonepk.com/health` must show `"database":"connected"`.
+4. Change `VITE_API_URL` in `frontend/.env.production` to
+   `https://backend.featherbonepk.com/api/v1`, run `npm run package:webhoster`, and
+   upload the new storefront zip (step 4).
 
 If your domain's DNS is managed somewhere other than WebHoster, add the same CNAME there.
 
@@ -98,8 +110,9 @@ If your domain's DNS is managed somewhere other than WebHoster, add the same CNA
 
 On your PC: `npm run package:webhoster`, then upload **only**
 `deploy/out/featherbone-frontend.zip` to `public_html` (WebHoster guide, step 7).
-This build includes the polling fallback, so upload it even if an older build is
-already live.
+It's built against whatever `VITE_API_URL` says in `frontend/.env.production`
+(currently `https://featherbonepk.vercel.app/api/v1`), and the script prints that
+address before building.
 
 ## 5. Check the scheduled sweep
 
@@ -107,7 +120,7 @@ Vercel → Project → **Settings → Cron Jobs** lists `/api/v1/cron/sweep`. To
 once by hand:
 
 ```bash
-curl -H "Authorization: Bearer <your CRON_SECRET>" https://backend.featherbonepk.com/api/v1/cron/sweep
+curl -H "Authorization: Bearer <your CRON_SECRET>" https://featherbonepk.vercel.app/api/v1/cron/sweep
 ```
 
 It answers with how many abandoned reservations and stale kitchen tickets it closed.
@@ -147,11 +160,11 @@ changes, run `npm run package:webhoster` and upload the new frontend zip to
 
 ## Troubleshooting
 
-| Symptom                                                                   | Likely cause                                                                                                                                                                                                |
-| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Signing in works, then you're signed out on reload (especially on iPhone) | The site is calling a `*.vercel.app` address. Use `backend.featherbonepk.com` (step 3).                                                                                                                     |
-| "Could not reach the server" everywhere                                   | Open `https://backend.featherbonepk.com/health`. If it doesn't load, the DNS or certificate isn't ready (step 3). If it loads, `CLIENT_URL` / `ALLOWED_ORIGINS` don't match the address in the browser bar. |
-| Kitchen display shows "Offline — polling"                                 | Expected on Vercel: it refreshes every 15 s instead of instantly.                                                                                                                                           |
-| "This file is X MB, and the server accepts uploads up to 4 MB"            | Vercel's request limit. Use a smaller or compressed image.                                                                                                                                                  |
-| Images uploaded before the move are broken                                | Step 7, `migrate:media`.                                                                                                                                                                                    |
-| Password-reset emails don't arrive                                        | Vercel Logs. Check the `SMTP_*` values; try `SMTP_HOST=speed.webhoster.pk`.                                                                                                                                 |
+| Symptom                                                                   | Likely cause                                                                                                                                                                                                                                                                                                                                                    |
+| ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Signing in works, then you're signed out on reload (especially on iPhone) | The site is calling a `*.vercel.app` address. Use `backend.featherbonepk.com` (step 3).                                                                                                                                                                                                                                                                         |
+| "Could not reach the server" everywhere                                   | Open the API's `/api/v1/health` (`https://featherbonepk.vercel.app/api/v1/health`, or `https://backend.featherbonepk.com/api/v1/health` after step 3). If it doesn't load, the deployment failed (Vercel → Logs), or after step 3 the DNS or certificate isn't ready. If it loads, `CLIENT_URL` / `ALLOWED_ORIGINS` don't match the address in the browser bar. |
+| Kitchen display shows "Offline — polling"                                 | Expected on Vercel: it refreshes every 15 s instead of instantly.                                                                                                                                                                                                                                                                                               |
+| "This file is X MB, and the server accepts uploads up to 4 MB"            | Vercel's request limit. Use a smaller or compressed image.                                                                                                                                                                                                                                                                                                      |
+| Images uploaded before the move are broken                                | Step 7, `migrate:media`.                                                                                                                                                                                                                                                                                                                                        |
+| Password-reset emails don't arrive                                        | Vercel Logs. Check the `SMTP_*` values; try `SMTP_HOST=speed.webhoster.pk`.                                                                                                                                                                                                                                                                                     |
