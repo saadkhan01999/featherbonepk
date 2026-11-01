@@ -19,6 +19,7 @@
     "migrate:channels": "npm --workspace backend run migrate:channels",
     "build": "npm --workspace frontend run build",
     "preview": "npm --workspace frontend run preview",
+    "package:webhoster": "node deploy/package-webhoster.mjs",
     "start": "npm --workspace backend run start",
     "lint": "npm --workspace backend run lint && npm --workspace frontend run lint",
     "test": "npm --workspace backend run test",

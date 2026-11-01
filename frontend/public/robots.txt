@@ -28,7 +28,15 @@ Disallow: /search?
 
 Allow: /
 
-# Absolute URL, and it must be YOUR domain — replace it before going live, or
-# Search Console will reject a sitemap hosted somewhere else.
-# The API generates it from the live catalogue, so it is never stale.
-Sitemap: https://your-domain.pk/sitemap.xml
+# The API generates the sitemap from the live catalogue, so it is never stale —
+# which is why it lives on the API's host, not here. Listing it in THIS file is
+# what makes that legitimate: the sitemaps protocol accepts a sitemap on another
+# host when the site's own robots.txt points to it, and every URL inside it is
+# on featherbonepk.com (the API builds them from CLIENT_URL).
+#
+# In Search Console, add featherbonepk.com as a Domain property (DNS verified)
+# so it covers the backend. subdomain too, then submit this same URL.
+#
+# `npm run package:webhoster` rewrites this host if the build targets a
+# different API (e.g. --api-url for Railway), so it always matches the bundle.
+Sitemap: https://backend.featherbonepk.com/sitemap.xml

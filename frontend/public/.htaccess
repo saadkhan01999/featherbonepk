@@ -22,6 +22,12 @@
   # /api IS NOT REWRITTEN — this line is what lets the API live on the same
   # domain as the site.
   #
+  # The configured WebHoster layout does not need it: there the API is its own
+  # cPanel Node.js app on backend.featherbonepk.com (see deploy/WEBHOSTER.md),
+  # so no /api path reaches this folder. It stays so that mounting the Node app
+  # at featherbonepk.com/api instead keeps working with no edit here, and so a
+  # stray /api request gets an honest 404 rather than the homepage.
+  #
   # cPanel mounts the Node app at /api and writes its own Passenger rules into
   # public_html/api/.htaccess. This rule hands those paths straight through.
   # Without it the rewrite below would swallow every API call and answer it with

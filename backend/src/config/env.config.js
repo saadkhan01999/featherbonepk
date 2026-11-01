@@ -176,6 +176,14 @@ const schema = z.object({
    * fresh filesystem, so every product photo and the payment QR vanish on the
    * next push. Point this at a mounted volume (e.g. /data/uploads) in
    * production and the files outlive deploys.
+   *
+   * A RELATIVE value is resolved against the backend package root, not the
+   * current directory — the same anchor as .env itself, for the same reason.
+   * On cPanel that makes `UPLOAD_DIR=../featherbone-uploads` mean "beside the
+   * application folder" no matter who starts the process: Passenger, a cron
+   * job, or someone in the terminal standing in their home directory. Beside,
+   * not inside, so deleting and re-extracting the app on a redeploy leaves
+   * every product photo where it was.
    */
   UPLOAD_DIR: z.string().optional(),
 
@@ -529,7 +537,9 @@ export const env = Object.freeze({
    * serves the files back can never disagree about where they live. They used
    * to compute the path independently.
    */
-  uploadDir: path.resolve(raw.UPLOAD_DIR?.trim() || path.join(PACKAGE_ROOT, 'uploads')),
+  // Relative values anchor to PACKAGE_ROOT (see UPLOAD_DIR above); an absolute
+  // one is taken as-is, because path.resolve discards everything before it.
+  uploadDir: path.resolve(PACKAGE_ROOT, raw.UPLOAD_DIR?.trim() || 'uploads'),
 });
 
 /**

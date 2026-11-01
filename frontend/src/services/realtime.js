@@ -63,6 +63,17 @@ function createSocket(kind) {
     path,
     // WebSocket first; long polling when a proxy refuses the upgrade.
     transports: ['websocket', 'polling'],
+    /*
+     * Without this the fallback above never happens. engine.io-client only
+     * tries the FIRST transport unless tryAllTransports is set (it defaults to
+     * false): a failed WebSocket is retried as a WebSocket, forever, and the
+     * second entry in the list is never reached. On shared hosting that drops
+     * the upgrade — cPanel behind some Apache/LiteSpeed setups — the Kitchen
+     * Display, Order Board and live order updates would sit on "connecting"
+     * indefinitely while every REST call works. With it, a refused WebSocket
+     * falls through to long polling on the same attempt.
+     */
+    tryAllTransports: true,
     auth: (cb) => {
       if (kind === 'web') cb({ token: getAccessToken(), kind: 'web' });
       else if (kind === 'pos') cb({ token: posSession.token, kind: 'pos' });

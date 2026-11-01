@@ -63,6 +63,12 @@ out/
 **/.next/
 **/out/
 
+# Upload-ready zips from `npm run package:webhoster`. Regenerated on demand, and
+# a committed one goes stale the moment the code or the API address changes —
+# which is how a build pointing at the old API gets uploaded by mistake.
+/deploy/out/
+/frontend/dist.zip
+
 
 # ==========================================
 # LOG FILES
@@ -81,6 +87,9 @@ pnpm-debug.log*
 uploads/
 backend/uploads/
 **/uploads/
+# Where backend/.env.example's UPLOAD_DIR=../featherbone-uploads lands when the
+# template is used on a development machine (beside backend/, i.e. here).
+/featherbone-uploads/
 
 tmp/
 temp/

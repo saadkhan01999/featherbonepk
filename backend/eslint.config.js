@@ -27,5 +27,24 @@ export default [
       'object-shorthand': 'warn',
     },
   },
+  /*
+   * cpanel-start.cjs — the one CommonJS file, because cPanel's Passenger loads
+   * its startup file with require(). Same rules; CommonJS scope and globals
+   * (require, __dirname) instead of ESM's.
+   */
+  {
+    files: ['**/*.cjs'],
+    languageOptions: {
+      ecmaVersion: 2023,
+      sourceType: 'commonjs',
+      globals: { ...globals.node },
+    },
+    rules: {
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      eqeqeq: ['error', 'smart'],
+      'prefer-const': 'error',
+      'no-var': 'error',
+    },
+  },
   { ignores: ['node_modules/**', 'uploads/**'] },
 ];
