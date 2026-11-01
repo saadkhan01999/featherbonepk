@@ -47,7 +47,7 @@ export const adminCatalogApi = {
     // it costs nothing and keeps the text part available to any middleware
     // that inspects the stream as it arrives.
     if (folder) form.append('folder', folder);
-    return apiClient.post('/admin/catalog/uploads', form);
+    return apiClient.post('/admin/catalog/uploads', form).catch(explainUploadFailure(file));
   },
 
   /**
@@ -62,8 +62,36 @@ export const adminCatalogApi = {
     // Field name stays 'image' so both endpoints share one multer config.
     form.append('image', file);
     if (folder) form.append('folder', folder);
-    return apiClient.post('/admin/catalog/uploads/media', form);
+    return apiClient.post('/admin/catalog/uploads/media', form).catch(explainUploadFailure(file));
   },
 };
+
+/*
+ * A large upload refused by the HOST reads as "could not reach the server".
+ *
+ * Vercel turns away any request body over 4.5 MB at its edge, before the API
+ * runs, and that refusal carries no CORS headers — so the browser hides it and
+ * the client sees a network error, which sends the owner off to check their
+ * internet connection over a photo that is simply too big. A failure that never
+ * reached the API, for a file over 4 MB, is far more likely the size than the
+ * network, so it says so. Every other error passes through untouched, including
+ * the API's own "too large" message for files it did receive.
+ */
+const HOST_BODY_LIMIT_BYTES = 4 * 1024 * 1024;
+
+function explainUploadFailure(file) {
+  return (error) => {
+    if (error?.isNetworkError && file?.size > HOST_BODY_LIMIT_BYTES) {
+      const mb = (file.size / 1024 / 1024).toFixed(1);
+      const explained = new Error(
+        `This file is ${mb} MB, and the server accepts uploads up to 4 MB. ` +
+          'Choose a smaller photo, or compress it (e.g. save as WebP or JPG at a lower quality) and try again.',
+      );
+      explained.code = 'FILE_TOO_LARGE';
+      throw explained;
+    }
+    throw error;
+  };
+}
 
 export default adminCatalogApi;

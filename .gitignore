@@ -36,6 +36,10 @@ node_modules/
 # other .env stay ignored, because those DO hold secrets.
 !frontend/.env.production
 
+# The Vercel variable template. Placeholders only, like .env.example — the real
+# values live in the Vercel dashboard, never in a file.
+!backend/.env.vercel.example
+
 
 # ==========================================
 # PRIVATE DOCUMENTATION

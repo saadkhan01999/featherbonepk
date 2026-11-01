@@ -253,11 +253,12 @@ say(
 );
 
 say(`
-Next (full guide: deploy/WEBHOSTER.md):
-  1. Backend zip  → extract into the Node.js app root (NOT public_html),
-                    create .env from .env.example, Run NPM Install, Restart.
-  2. Check        → ${api.origin}/health  must show "database":"connected"
-  3. Frontend zip → extract into public_html of featherbonepk.com.
+Next:
+  1. Check the API → ${api.origin}/health  must show "database":"connected"
+       API on Vercel (current setup): nothing to upload — see deploy/VERCEL.md
+       API on cPanel: extract the backend zip into the Node.js app root
+                      (NOT public_html) — see deploy/WEBHOSTER.md
+  2. Frontend zip  → extract into public_html of featherbonepk.com.
 `);
 
 // =============================================================================

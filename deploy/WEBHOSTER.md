@@ -1,5 +1,12 @@
 # Deploying Feather & Bone on WebHoster.pk (cPanel)
 
+> **Current setup: storefront on WebHoster, API on Vercel.** WebHoster blocks
+> outbound port 27017, so the API can't reach MongoDB Atlas from cPanel. The API
+> therefore runs on Vercel at the same address, `backend.featherbonepk.com`. Follow
+> **[VERCEL.md](VERCEL.md)** for the API, and from this guide only **step 1** (build
+> the zips) and **step 7** (upload the storefront). Steps 0 and 2–6 apply only if
+> WebHoster later opens port 27017 and you move the API back to cPanel.
+
 Everything runs on your WebHoster cPanel account (`https://speed.webhoster.pk:2083`),
 with the database on MongoDB Atlas:
 

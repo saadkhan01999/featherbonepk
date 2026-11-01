@@ -1,0 +1,5 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "npm install --omit=dev --no-audit --no-fund",
+  "crons": [{ "path": "/api/v1/cron/sweep", "schedule": "0 22 * * *" }]
+}

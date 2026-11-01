@@ -23,7 +23,13 @@ import { ConfirmDialog, Modal } from '@/components/ui/Modal.jsx';
 import { Input, Select } from '@/components/ui/Input.jsx';
 import { useAuth } from '@/features/auth/authContext.jsx';
 import { orderTypeLine } from '@/features/kitchen/labels.js';
-import { EVENTS, useConnectionStore, useDebouncedCallback, useRealtimeEvent } from '@/services/realtime.js';
+import {
+  EVENTS,
+  useConnectionStore,
+  useDebouncedCallback,
+  usePollWhileOffline,
+  useRealtimeEvent,
+} from '@/services/realtime.js';
 import { apiClient } from '@/services/apiClient.js';
 import { useResource } from '@/features/catalog/catalog.api.js';
 import { usePagedResource } from '@/features/catalog/usePagedResource.js';
@@ -150,6 +156,8 @@ export function OrdersPage() {
   useEffect(() => {
     if (connection === 'online') refresh();
   }, [connection, refresh]);
+  // Without the live channel the queue would otherwise only move on a reload.
+  usePollWhileOffline('web', refresh, 30_000);
 
   /** Move an order to its next stage. */
   const transition = useCallback(

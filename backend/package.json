@@ -10,7 +10,7 @@
     "dev:memdb": "node scripts/dev-memory-db.mjs",
     "start": "node src/server.js",
     "test": "node tests/run.mjs",
-    "lint": "eslint src scripts tests cpanel-start.cjs",
+    "lint": "eslint src scripts tests cpanel-start.cjs index.js",
     "migrate:channels": "node scripts/backfill-channels.mjs",
     "dev:memdb:empty": "node scripts/dev-memory-db.mjs --empty",
     "owner": "node scripts/owner.mjs",

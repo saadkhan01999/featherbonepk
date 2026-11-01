@@ -9,7 +9,7 @@ import { ForwardOrderDialog } from '@/components/admin/ForwardOrderDialog.jsx';
 import { useAuth } from '@/features/auth/authContext.jsx';
 import { useResource } from '@/features/catalog/catalog.api.js';
 import { stationsApi } from '@/features/stations/stations.api.js';
-import { EVENTS, useDebouncedCallback, useRealtimeEvent } from '@/services/realtime.js';
+import { EVENTS, useDebouncedCallback, usePollWhileOffline, useRealtimeEvent } from '@/services/realtime.js';
 import { playChime } from '@/lib/chime.js';
 import { formatCurrency, formatQuantity, formatRelativeTime } from '@/lib/format.js';
 import { useNow } from '@/lib/useNow.js';
@@ -41,6 +41,9 @@ export function IncomingOrdersPanel() {
   useRealtimeEvent('web', EVENTS.SETTINGS_CHANGED, (event) => {
     if (event?.sections?.some((s) => ['stations', 'kitchen'].includes(s))) refresh();
   });
+  // No live channel (an outage, or a host without one such as Vercel): a new
+  // website order must still ring here, within seconds rather than never.
+  usePollWhileOffline('web', reload, 20_000);
 
   // Ring and highlight orders that arrive while the dashboard is open.
   const seen = useRef(null);

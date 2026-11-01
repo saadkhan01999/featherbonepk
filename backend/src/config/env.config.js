@@ -277,6 +277,19 @@ const schema = z.object({
   SUPERADMIN_EMAIL: z.string().optional(),
   SUPERADMIN_PASSWORD: z.string().optional(),
 
+  /*
+   * --- Vercel ------------------------------------------------------------------
+   * VERCEL is set to "1" by the platform itself, at build time and at run time;
+   * nobody configures it. It is read here, like everything else, so the rest of
+   * the code asks `env.isVercel` instead of reaching into process.env.
+   *
+   * CRON_SECRET guards the scheduled sweep (backend/index.js). Vercel sends it
+   * as `Authorization: Bearer <value>` on every cron request once the variable
+   * exists in the project; without it the sweep endpoint refuses everything.
+   */
+  VERCEL: z.string().optional(),
+  CRON_SECRET: z.string().optional(),
+
   CURRENCY: z.string().default('PKR'),
   TAX_RATE: z.coerce.number().min(0).max(1).default(0.05),
   DELIVERY_FEE: z.coerce.number().min(0).default(60),
@@ -487,6 +500,35 @@ if (
   process.exit(1);
 }
 
+/*
+ * Vercel has no disk to keep uploads on.
+ *
+ * A function's filesystem is read-only apart from a scratch /tmp that belongs to
+ * one instance and disappears with it. The local driver there either fails on
+ * the first upload (read-only) or — pointed at /tmp — "succeeds", serves the
+ * photo for a few minutes from one instance and 404s it from every other, then
+ * loses it for good. That second outcome is silent data loss, so it is refused
+ * at boot like the other half-configured storage cases above.
+ */
+const isVercel = raw.VERCEL === '1';
+
+if (isVercel && raw.NODE_ENV === 'production' && raw.UPLOAD_DRIVER !== 'cloudinary') {
+  console.error('\n✖ Refusing to start: UPLOAD_DRIVER=local on Vercel.');
+  console.error('  Vercel functions have no permanent disk, so uploaded photos would be lost.');
+  console.error('  Set UPLOAD_DRIVER=cloudinary and the three CLOUDINARY_* variables.\n');
+  process.exit(1);
+}
+
+/*
+ * Vercel rejects any request body over 4.5 MB at its edge, before this code
+ * runs — and that rejection carries no CORS headers, so the browser reports it
+ * as "could not reach the server". Capping the API's own limit just below it
+ * means a file between the two gets the API's specific "too large" message
+ * instead. Anything bigger never arrives; the client explains that case.
+ */
+const VERCEL_BODY_CAP_BYTES = 4 * 1024 * 1024;
+const capForPlatform = (bytes) => (isVercel ? Math.min(bytes, VERCEL_BODY_CAP_BYTES) : bytes);
+
 /**
  * Extra browser origins, parsed once.
  * Trailing slashes are stripped because `new URL()` in a browser sends
@@ -530,8 +572,10 @@ export const env = Object.freeze({
   isProduction: raw.NODE_ENV === 'production',
   isDevelopment: raw.NODE_ENV === 'development',
   isTest: raw.NODE_ENV === 'test',
-  uploadMaxBytes: raw.UPLOAD_MAX_MB * 1024 * 1024,
-  uploadVideoMaxBytes: raw.UPLOAD_VIDEO_MAX_MB * 1024 * 1024,
+  /** Running as a Vercel Function: no sockets, no disk, no background timers. */
+  isVercel,
+  uploadMaxBytes: capForPlatform(raw.UPLOAD_MAX_MB * 1024 * 1024),
+  uploadVideoMaxBytes: capForPlatform(raw.UPLOAD_VIDEO_MAX_MB * 1024 * 1024),
   /*
    * Resolved once, here, so the upload middleware and the static handler that
    * serves the files back can never disagree about where they live. They used

@@ -56,11 +56,49 @@ function endpoint() {
 
 const sockets = { guest: null, web: null, pos: null, kitchen: null };
 
+/*
+ * Does this API have a live channel at all?
+ *
+ * Not every host can run one. On Vercel the API is a set of functions that
+ * cannot hold a socket open, so nothing answers at /socket.io — the request
+ * reaches the API's ordinary 404 handler instead. That answer is a fact about
+ * the deployment, not a blip, and retrying it is pure cost: every open tab would
+ * call the API about twelve times a minute, forever, and on a platform billed
+ * per invocation a kitchen screen left open all day would spend the month's
+ * allowance on its own.
+ *
+ * So the first 404 ends every socket for the rest of the page's life. Each
+ * status goes to 'offline', which is what the screens already handle: the
+ * Kitchen Display and Order Board poll, the till polls, and the screens that
+ * relied on the socket alone poll through usePollWhileOffline below.
+ *
+ * Only a 404 means this. A refused WebSocket, a 5xx, a timeout or a network
+ * drop are all transient, and keep the normal backoff.
+ */
+let channelMissing = false;
+
+/** The handshake was answered by the API itself — "no such route". */
+const isMissingChannel = (error) => error?.description === 404;
+
+function giveUpOnLiveChannel() {
+  if (channelMissing) return;
+  channelMissing = true;
+  for (const [kind, socket] of Object.entries(sockets)) {
+    if (!socket) continue;
+    socket.io.reconnection(false);
+    socket.disconnect();
+    setStatus(kind, 'offline');
+  }
+}
+
 function createSocket(kind) {
   const { origin, path } = endpoint();
 
   const socket = io(origin, {
     path,
+    // A socket created after the channel was found missing never dials out.
+    autoConnect: !channelMissing,
+    reconnection: !channelMissing,
     // WebSocket first; long polling when a proxy refuses the upgrade.
     transports: ['websocket', 'polling'],
     /*
@@ -89,7 +127,7 @@ function createSocket(kind) {
     reconnectionAttempts: Infinity,
   });
 
-  setStatus(kind, 'connecting');
+  setStatus(kind, channelMissing ? 'offline' : 'connecting');
 
   socket.on('connect', () => setStatus(kind, 'online'));
   socket.on('disconnect', () => setStatus(kind, 'offline'));
@@ -98,6 +136,11 @@ function createSocket(kind) {
   let refreshing = false;
   socket.on('connect_error', async (error) => {
     setStatus(kind, 'offline');
+
+    if (isMissingChannel(error)) {
+      giveUpOnLiveChannel();
+      return;
+    }
 
     /*
      * An expired staff token: refresh it once through the same single-flight
@@ -138,7 +181,7 @@ export function getSocket(kind = 'guest') {
  */
 export function reconnectSocket(kind) {
   const socket = sockets[kind];
-  if (!socket) return;
+  if (!socket || channelMissing) return;
   socket.disconnect();
   socket.connect();
 }
@@ -168,6 +211,37 @@ export function useRealtimeEvent(kind, event, handler, enabled = true) {
     socket.on(event, listener);
     return () => socket.off(event, listener);
   }, [kind, event, enabled]);
+}
+
+/**
+ * Re-read on a timer for as long as this identity's live channel is not
+ * connected — the Kitchen Display's "polling safety net", for any screen.
+ *
+ * A screen that refreshes only when a socket event arrives is frozen without
+ * one: during an outage, on a host with no live channel (Vercel), or behind a
+ * network that drops WebSockets. With this it stays current, just less
+ * promptly. While the socket is online the timer does not run at all, so a
+ * healthy deployment pays nothing for it. A hidden tab skips its ticks: no one
+ * is looking, and every tick is a request.
+ *
+ * @param {'guest'|'web'|'pos'|'kitchen'} kind
+ * @param {() => void} callback  the screen's own reload
+ * @param {number} intervalMs
+ * @param {boolean} [enabled]    e.g. false once an order can no longer change
+ */
+export function usePollWhileOffline(kind, callback, intervalMs, enabled = true) {
+  const live = useConnectionStore((s) => s[kind] === 'online');
+  const callbackRef = useRef(callback);
+  callbackRef.current = callback;
+
+  useEffect(() => {
+    if (!enabled || live) return undefined;
+    const id = setInterval(() => {
+      if (document.visibilityState === 'hidden') return;
+      callbackRef.current?.();
+    }, intervalMs);
+    return () => clearInterval(id);
+  }, [enabled, live, intervalMs]);
 }
 
 /**

@@ -26,7 +26,7 @@ import { QuickRate } from '@/components/customer/Testimonials.jsx';
 import { useAuth } from '@/features/auth/authContext.jsx';
 import { ordersApi } from '@/features/orders/orders.api.js';
 import { useResource } from '@/features/catalog/catalog.api.js';
-import { EVENTS, useRealtimeEvent, watchOrder } from '@/services/realtime.js';
+import { EVENTS, usePollWhileOffline, useRealtimeEvent, watchOrder } from '@/services/realtime.js';
 import { formatCurrency, formatQuantity, formatDateTime } from '@/lib/format.js';
 import { ROUTES } from '@/constants/routes.js';
 import { fadeUp } from '@/lib/motion.js';
@@ -86,6 +86,10 @@ export function OrderConfirmationPage() {
   useRealtimeEvent('guest', EVENTS.ORDER_CHANGED, (event) => {
     if (event?.orderNumber && event.orderNumber.toUpperCase() === String(orderNumber).toUpperCase()) reload();
   });
+  // No live channel: re-read every 30s instead, and stop once the order can no
+  // longer change — nobody needs a delivered order polled for an hour.
+  const finished = ['delivered', 'completed', 'cancelled'].includes(order?.status);
+  usePollWhileOffline('guest', reload, 30_000, Boolean(order) && !finished);
 
   const { isAuthenticated } = useAuth();
   const [isCancelOpen, setCancelOpen] = useState(false);

@@ -276,7 +276,7 @@ const storage = isCloudinary ? multer.memoryStorage() : diskStorage;
  * @param {string} describe           what to say when the type is refused
  */
 function handlerFor(types, maxBytes, describe) {
-  return multer({
+  const parse = multer({
     storage,
     limits: {
       fileSize: maxBytes,
@@ -291,6 +291,23 @@ function handlerFor(types, maxBytes, describe) {
       return callback(null, true);
     },
   }).single('image');
+
+  /*
+   * The size message is worded HERE, where the limit is known.
+   *
+   * multer's LIMIT_FILE_SIZE error does not say which limit was hit, and the
+   * generic handler could only guess UPLOAD_MAX_MB — so a 60MB clip on the video
+   * endpoint was told "the limit is 5MB", and on Vercel (where both limits are
+   * capped at 4MB, see env.config.js) every message would have been wrong.
+   */
+  const limitMb = Math.round((maxBytes / 1024 / 1024) * 10) / 10;
+  return (req, res, next) =>
+    parse(req, res, (error) => {
+      if (error?.code === 'LIMIT_FILE_SIZE') {
+        return next(ApiError.badRequest(`File is too large — the limit is ${limitMb}MB`));
+      }
+      return next(error);
+    });
 }
 
 /**
